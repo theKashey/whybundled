@@ -59,5 +59,5 @@ module.exports = function byCommand(
     : modulesFollowingDepsChain(report.modules, flags.by);
 
   const limit /*: number */ = pattern ? 0 : flags.limit >= 0 ? flags.limit : 20;
-  reporter.print(modules, report.chunks, { by: flags.by }, limit);
+  reporter.print(modules, report.chunks, {}, { by: flags.by }, limit);
 };

@@ -41,6 +41,16 @@ module.exports = function defaultCommand(
   const format = str =>
     str.replace(/^\.\//, "").replace(/ \+ \d+ modules$/, "");
 
+  const chunkMapping = stats.modules.reduce((acc, module) => {
+    const chunkId = module.chunks[0];
+    if (stats.chunks[chunkId]) {
+      acc[module.name] = stats.chunks[chunkId].names[0] || chunkId;
+    } else {
+      acc[module.name] = "?" + chunkId;
+    }
+    return acc;
+  }, {});
+
   const modules = report.modules.filter(module => {
     if (pattern && mm.isMatch(module.name, pattern, { format })) {
       return true;
@@ -60,5 +70,5 @@ module.exports = function defaultCommand(
   });
 
   const limit = pattern ? 0 : flags.limit >= 0 ? flags.limit : 20;
-  reporter.print(modules, report.chunks, flags, limit);
+  reporter.print(modules, report.chunks, chunkMapping, flags, limit);
 };
