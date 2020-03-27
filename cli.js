@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 /* @flow */
 
+const path = require("path");
 const meow = require("meow");
 const chalk = require("chalk");
+const createProgressBar = require("./lib/console/progress-bar");
+const defaultReporter = require("./lib/reporter");
 const defaultCommand = require("./commands/default");
 const byCommand = require("./commands/by");
 const helpCommand = require("./commands/help");
 const knownFlags = [
   "by",
+  "only",
   "modulesOnly",
   "filesOnly",
   "directOnly",
@@ -16,7 +20,8 @@ const knownFlags = [
   "limit",
   "version",
   "help",
-  "ignore"
+  "ignore",
+  "reporter"
 ];
 
 const validateFlags = flags => {
@@ -52,13 +57,27 @@ if (!input || !input.length || !input[0].match(".json") || flags.help) {
   showHelp(0);
 }
 
+const updateProgressBar = createProgressBar();
+
+let reporter = defaultReporter;
+if (flags.reporter) {
+  try {
+    reporter = {
+      ...defaultReporter,
+      // $FlowFixMe
+      ...require(path.resolve(__dirname, flags.reporter))
+    };
+  } catch (e) {}
+}
+
 if (flags.by) {
-  byCommand(input[0], flags, input[1]);
+  byCommand(input[0], flags, input[1], reporter, updateProgressBar);
 } else {
-  defaultCommand(input[0], flags, input[1]);
+  defaultCommand(input[0], flags, input[1], reporter, updateProgressBar);
 }
 
 const timing = (Date.now() - start) / 1000;
 const rounded = Math.round(timing * 100) / 100;
 
 console.log(`🏁  Done in ${rounded}s.`);
+process.exit(0);
